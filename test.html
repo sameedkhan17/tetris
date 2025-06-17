@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tetris Test</title>
+    <style>
+        body {
+            font-family: monospace;
+            background: #000;
+            color: #0f0;
+            padding: 20px;
+        }
+        .test-result {
+            margin: 10px 0;
+            padding: 5px;
+            border: 1px solid #333;
+        }
+        .pass { color: #0f0; }
+        .fail { color: #f00; }
+    </style>
+</head>
+<body>
+    <h1>Tetris Game Test</h1>
+    <div id="test-results"></div>
+    
+    <script src="js/utils.js"></script>
+    <script src="js/Tetromino.js"></script>
+    <script>
+        const results = document.getElementById('test-results');
+        
+        function addResult(test, passed, message = '') {
+            const div = document.createElement('div');
+            div.className = `test-result ${passed ? 'pass' : 'fail'}`;
+            div.textContent = `${test}: ${passed ? 'PASS' : 'FAIL'} ${message}`;
+            results.appendChild(div);
+        }
+        
+        // Test 1: Utils functions
+        try {
+            const bag = Utils.generateBag();
+            addResult('Generate Bag', bag.length === 7, `Generated ${bag.length} pieces`);
+        } catch (e) {
+            addResult('Generate Bag', false, e.message);
+        }
+        
+        // Test 2: Tetromino creation
+        try {
+            const tetromino = new Tetromino('I');
+            addResult('Tetromino Creation', tetromino.type === 'I', `Created ${tetromino.type} piece`);
+        } catch (e) {
+            addResult('Tetromino Creation', false, e.message);
+        }
+        
+        // Test 3: Tetromino shapes
+        try {
+            const tetromino = new Tetromino('T');
+            const shape = tetromino.getCurrentShape();
+            addResult('Tetromino Shape', shape.length === 4, `Shape has ${shape.length} rows`);
+        } catch (e) {
+            addResult('Tetromino Shape', false, e.message);
+        }
+        
+        // Test 4: Tetromino rotation
+        try {
+            const tetromino = new Tetromino('T');
+            const board = [];
+            for (let i = 0; i < 24; i++) {
+                board[i] = new Array(10).fill(null);
+            }
+            const rotated = tetromino.rotate(board);
+            addResult('Tetromino Rotation', typeof rotated === 'boolean', `Rotation returned ${rotated}`);
+        } catch (e) {
+            addResult('Tetromino Rotation', false, e.message);
+        }
+        
+        // Test 5: TetrominoFactory
+        try {
+            const factory = new TetrominoFactory();
+            const piece = factory.getNext();
+            addResult('TetrominoFactory', piece instanceof Tetromino, `Factory created ${piece.type}`);
+        } catch (e) {
+            addResult('TetrominoFactory', false, e.message);
+        }
+        
+        // Test 6: Game constants
+        try {
+            const hasColors = GAME_CONFIG.COLORS && GAME_CONFIG.COLORS.I;
+            addResult('Game Constants', hasColors, `Colors defined: ${hasColors}`);
+        } catch (e) {
+            addResult('Game Constants', false, e.message);
+        }
+        
+        // Test 7: Wall kick data
+        try {
+            const hasWallKicks = WALL_KICK_DATA && WALL_KICK_DATA.JLSTZ;
+            addResult('Wall Kick Data', hasWallKicks, `Wall kicks defined: ${hasWallKicks}`);
+        } catch (e) {
+            addResult('Wall Kick Data', false, e.message);
+        }
+
+        // Test 8: Spawn position fix
+        try {
+            const tetromino = new Tetromino('I');
+            addResult('Spawn Position Fix', tetromino.y === 2, `Spawn Y position: ${tetromino.y} (should be 2)`);
+        } catch (e) {
+            addResult('Spawn Position Fix', false, e.message);
+        }
+
+        // Test 9: Lock delay optimization
+        try {
+            const lockDelay = GAME_CONFIG.LOCK_DELAY;
+            addResult('Lock Delay Optimization', lockDelay === 300, `Lock delay: ${lockDelay}ms (should be 300)`);
+        } catch (e) {
+            addResult('Lock Delay Optimization', false, e.message);
+        }
+
+        console.log('Tests completed');
+    </script>
+</body>
+</html>

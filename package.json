@@ -1,0 +1,30 @@
+{
+  "name": "tetris-game",
+  "version": "1.0.0",
+  "description": "A fully functional Tetris clone built with modern web technologies",
+  "main": "index.html",
+  "scripts": {
+    "start": "python3 -m http.server 8000",
+    "dev": "python3 -m http.server 8000",
+    "update-cache": "python3 update_cache_version.py",
+    "test": "echo \"No tests specified\" && exit 0"
+  },
+  "keywords": [
+    "tetris",
+    "game",
+    "javascript",
+    "html5",
+    "canvas",
+    "web-audio-api"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/tetris-game.git"
+  },
+  "homepage": "https://your-tetris-game.vercel.app",
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

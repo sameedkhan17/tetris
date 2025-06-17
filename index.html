@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Tetris Clone</title>
+    <link rel="stylesheet" href="styles/main.css?v=202506171520">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="game-container">
+        <header class="game-header">
+            <h1 class="game-title">TETRIS</h1>
+            <div class="controls-info">
+                <span>Arrow Keys: Move/Rotate | Space: Hard Drop | P: Pause</span>
+            </div>
+            <div id="audioStatus" class="audio-status" style="display: none;">
+                <span>🎵 Click anywhere to enable audio and start music</span>
+            </div>
+        </header>
+
+        <div class="game-layout">
+            <!-- Left Panel -->
+            <div class="left-panel">
+                <div class="score-container">
+                    <div class="score-item">
+                        <span class="score-label">SCORE</span>
+                        <span class="score-value" id="currentScore">0</span>
+                    </div>
+                    <div class="score-item">
+                        <span class="score-label">HIGH SCORE</span>
+                        <span class="score-value" id="highScore">0</span>
+                    </div>
+                    <div class="score-item">
+                        <span class="score-label">LINES</span>
+                        <span class="score-value" id="linesCleared">0</span>
+                    </div>
+                    <div class="score-item">
+                        <span class="score-label">LEVEL</span>
+                        <span class="score-value" id="currentLevel">1</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Game Board -->
+            <div class="game-board-container">
+                <canvas id="gameCanvas" width="300" height="600"></canvas>
+                <div class="game-overlay" id="gameOverlay">
+                    <div class="overlay-content">
+                        <h2 id="overlayTitle">GAME PAUSED</h2>
+                        <p id="overlayMessage">Press P to resume</p>
+                        <button id="restartButton" class="game-button">RESTART</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel -->
+            <div class="right-panel">
+                <div class="next-container">
+                    <h3>NEXT</h3>
+                    <canvas id="nextCanvas" width="120" height="400"></canvas>
+                </div>
+                
+                <div class="controls-container">
+                    <div class="audio-controls">
+                        <h4>AUDIO</h4>
+                        <div class="volume-control">
+                            <label>Music</label>
+                            <input type="range" id="musicVolume" min="0" max="100" value="50">
+                        </div>
+                        <div class="volume-control">
+                            <label>SFX</label>
+                            <input type="range" id="sfxVolume" min="0" max="100" value="70">
+                        </div>
+                    </div>
+                    
+                    <div class="game-controls">
+                        <button id="pauseButton" class="game-button">PAUSE</button>
+                        <button id="newGameButton" class="game-button">NEW GAME</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Touch Controls -->
+        <div class="mobile-controls" id="mobileControls">
+            <div class="control-row">
+                <button class="touch-btn" id="rotateBtn">↻</button>
+                <button class="touch-btn" id="hardDropBtn">DROP</button>
+            </div>
+            <div class="control-row">
+                <button class="touch-btn" id="leftBtn">←</button>
+                <button class="touch-btn" id="downBtn">↓</button>
+                <button class="touch-btn" id="rightBtn">→</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Particle Container for Effects -->
+    <div id="particleContainer"></div>
+
+    <!-- Scripts -->
+    <script src="js/utils.js?v=202506171520"></script>
+    <script src="js/Tetromino.js?v=202506171520"></script>
+    <script src="js/AudioManager.js?v=202506171520"></script>
+    <script src="js/Renderer.js?v=202506171520"></script>
+    <script src="js/InputHandler.js?v=202506171520"></script>
+    <script src="js/GameEngine.js?v=202506171520"></script>
+    <script src="js/main.js?v=202506171520"></script>
+</body>
+</html>
