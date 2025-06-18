@@ -1,5 +1,5 @@
 // Simple Service Worker for Tetris Game
-const CACHE_NAME = 'tetris-v202506171520';
+const CACHE_NAME = 'tetris-v202506171440';
 const urlsToCache = [
     '/',
     '/index.html',

@@ -41,20 +41,61 @@ class InputHandler {
     }
     
     setupTouchControls() {
-        // Show mobile controls on touch devices
-        if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
-            const mobileControls = document.getElementById('mobileControls');
-            if (mobileControls) {
-                mobileControls.style.display = 'block';
-                
-                // Touch button handlers
-                this.setupTouchButton('leftBtn', () => this.gameEngine.moveLeft());
-                this.setupTouchButton('rightBtn', () => this.gameEngine.moveRight());
-                this.setupTouchButton('downBtn', () => this.gameEngine.softDrop());
-                this.setupTouchButton('rotateBtn', () => this.gameEngine.rotate());
-                this.setupTouchButton('hardDropBtn', () => this.gameEngine.hardDrop());
-            }
+        // Better mobile device detection - only show controls on actual mobile devices
+        const isMobile = this.isMobileDevice();
+
+        const mobileControls = document.getElementById('mobileControls');
+        if (!mobileControls) return;
+
+        if (isMobile) {
+            // Show mobile controls and override CSS !important
+            mobileControls.style.setProperty('display', 'block', 'important');
+
+            // Touch button handlers - only set up if we're showing controls
+            this.setupTouchButton('leftBtn', () => this.gameEngine.moveLeft());
+            this.setupTouchButton('rightBtn', () => this.gameEngine.moveRight());
+            this.setupTouchButton('downBtn', () => this.gameEngine.softDrop());
+            this.setupTouchButton('rotateBtn', () => this.gameEngine.rotate());
+            this.setupTouchButton('hardDropBtn', () => this.gameEngine.hardDrop());
+        } else {
+            // Ensure mobile controls stay hidden on desktop
+            mobileControls.style.setProperty('display', 'none', 'important');
         }
+    }
+
+    // Better mobile device detection
+    isMobileDevice() {
+        // Check user agent for mobile indicators
+        const userAgent = navigator.userAgent.toLowerCase();
+        const mobileKeywords = ['mobile', 'android', 'iphone', 'ipad', 'ipod', 'blackberry', 'windows phone'];
+        const isMobileUA = mobileKeywords.some(keyword => userAgent.includes(keyword));
+
+        // Check screen size (mobile devices typically have smaller screens)
+        const isSmallScreen = window.innerWidth <= 768 || window.innerHeight <= 768;
+
+        // Check if device has touch AND is likely mobile (not just touch-capable desktop)
+        const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
+        // Check for desktop-specific indicators
+        const isDesktop = userAgent.includes('windows') && !userAgent.includes('windows phone') ||
+                         userAgent.includes('macintosh') && !userAgent.includes('mobile') ||
+                         userAgent.includes('linux') && !userAgent.includes('android');
+
+        // Return true only if it's likely a mobile device
+        const result = (isMobileUA || (hasTouch && isSmallScreen)) && !isDesktop;
+
+        // Debug logging
+        console.log('Mobile Detection Debug:', {
+            userAgent: userAgent,
+            isMobileUA: isMobileUA,
+            isSmallScreen: isSmallScreen,
+            hasTouch: hasTouch,
+            isDesktop: isDesktop,
+            result: result,
+            screenSize: `${window.innerWidth}x${window.innerHeight}`
+        });
+
+        return result;
     }
     
     setupTouchButton(buttonId, action) {
@@ -158,6 +199,9 @@ class InputHandler {
     
     // Handle touch gestures
     handleTouchStart(event) {
+        // Only handle touch gestures on mobile devices
+        if (!this.isMobileDevice()) return;
+
         if (event.touches.length === 1) {
             const touch = event.touches[0];
             this.touchStartPos = {
@@ -167,76 +211,73 @@ class InputHandler {
             };
         }
     }
-    
+
     handleTouchMove(event) {
+        // Only handle touch gestures on mobile devices
+        if (!this.isMobileDevice()) return;
+
         event.preventDefault(); // Prevent scrolling
     }
-    
+
     handleTouchEnd(event) {
-        if (!this.touchStartPos) return;
-    
+        // Only handle touch gestures on mobile devices
+        if (!this.isMobileDevice() || !this.touchStartPos) return;
+
         const touch = event.changedTouches[0];
         const deltaX = touch.clientX - this.touchStartPos.x;
         const deltaY = touch.clientY - this.touchStartPos.y;
         const deltaTime = Date.now() - this.touchStartPos.time;
-    
-        const canvas = this.gameEngine.renderer.canvas; // Assuming renderer has a canvas property
-        const rect = canvas.getBoundingClientRect();
-        const touchX = touch.clientX - rect.left;
-        const touchY = touch.clientY - rect.top;
-    
-        // Define tap zones (adjust as needed)
-        const screenWidth = rect.width;
-        const screenHeight = rect.height;
-        const tapZoneWidth = screenWidth / 3;
-        const hardDropZoneHeight = screenHeight / 4;
-    
-        // Check for tap zone actions first
-        if (deltaTime < 250) { // Max time for a tap
-            if (touchY < hardDropZoneHeight) {
-                // Tap in top zone: Hard Drop
-                this.gameEngine.hardDrop();
-                this.touchStartPos = null;
-                return;
-            } else if (touchX < tapZoneWidth) {
-                // Tap in left zone: Rotate Counter-Clockwise (or primary rotate)
-                this.gameEngine.rotate(false); // Assuming rotate can take a direction
-                this.touchStartPos = null;
-                return;
-            } else if (touchX > screenWidth - tapZoneWidth) {
-                // Tap in right zone: Rotate Clockwise (or primary rotate if no direction)
-                this.gameEngine.rotate(true); // Assuming rotate can take a direction
-                this.touchStartPos = null;
-                return;
-            }
+
+        // Get game canvas for touch area calculations
+        const canvas = document.getElementById('gameCanvas');
+        if (!canvas) {
+            this.touchStartPos = null;
+            return;
         }
-    
-        // Only process swipes that are long enough and fast enough, and not a tap zone action
-        const swipeThreshold = this.touchThreshold * 1.5; // Increased threshold for swipes
-        if (Math.abs(deltaX) > swipeThreshold || Math.abs(deltaY) > swipeThreshold) {
-            if (deltaTime < 350) { // Quick swipe, slightly longer time for swipes
-                if (Math.abs(deltaX) > Math.abs(deltaY)) {
-                    // Horizontal swipe
-                    if (deltaX > 0) {
-                        this.gameEngine.moveRight();
-                    } else {
-                        this.gameEngine.moveLeft();
-                    }
+
+        const rect = canvas.getBoundingClientRect();
+        const touchStartX = this.touchStartPos.x - rect.left;
+        const touchStartY = this.touchStartPos.y - rect.top;
+
+        // Improved gesture recognition
+        const minSwipeDistance = 40; // Minimum distance for a swipe
+        const maxTapTime = 300; // Maximum time for a tap
+        const maxTapDistance = 20; // Maximum distance for a tap
+
+        const swipeDistance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+        // Check if it's a tap (short time, small distance)
+        if (deltaTime < maxTapTime && swipeDistance < maxTapDistance) {
+            // Simple tap anywhere on the game area rotates the piece
+            this.gameEngine.rotate();
+            this.touchStartPos = null;
+            return;
+        }
+
+        // Check if it's a swipe (sufficient distance and reasonable time)
+        if (swipeDistance >= minSwipeDistance && deltaTime < 500) {
+            // Determine swipe direction
+            if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                // Horizontal swipe
+                if (deltaX > 0) {
+                    // Swipe right
+                    this.gameEngine.moveRight();
                 } else {
-                    // Vertical swipe (down for soft drop, up could be hold or nothing)
-                    if (deltaY > 0) {
-                        this.gameEngine.softDrop();
-                    } // No action for swipe up by default, could be used for 'hold' piece
+                    // Swipe left
+                    this.gameEngine.moveLeft();
+                }
+            } else {
+                // Vertical swipe
+                if (deltaY > 0) {
+                    // Swipe down - soft drop
+                    this.gameEngine.softDrop();
+                } else {
+                    // Swipe up - hard drop
+                    this.gameEngine.hardDrop();
                 }
             }
-        } else if (deltaTime < 200 && (Math.abs(deltaX) < this.touchThreshold && Math.abs(deltaY) < this.touchThreshold)) {
-            // If it wasn't a zone tap or a clear swipe, consider it a general tap for rotation (fallback)
-            // This part might be redundant if tap zones cover rotation well.
-            // Or, it could be a center-tap for a different action if desired.
-            // For now, let's keep the original quick tap rotate if no zone is hit.
-            // this.gameEngine.rotate(); // Original tap-to-rotate, consider if needed with zones
         }
-    
+
         this.touchStartPos = null;
     }
     

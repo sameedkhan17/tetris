@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile Detection Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #1a1a2e;
+            color: white;
+        }
+        .test-info {
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid #00ffff;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .mobile-indicator {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .mobile-true { color: #00ff00; }
+        .mobile-false { color: #ff0000; }
+        .controls-test {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #333;
+            border-radius: 5px;
+        }
+        .mobile-controls {
+            display: none !important;
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #00ffff;
+            border-radius: 10px;
+            padding: 15px;
+            z-index: 100;
+        }
+        .control-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .touch-btn {
+            background: rgba(0, 102, 204, 0.8);
+            border: 1px solid #00ffff;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 5px;
+            min-width: 60px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Mobile Detection Test</h1>
+    
+    <div class="test-info">
+        <h2>Device Information</h2>
+        <div id="deviceInfo"></div>
+        <div id="mobileStatus" class="mobile-indicator"></div>
+    </div>
+    
+    <div class="controls-test">
+        <h3>Touch Controls Test</h3>
+        <p>Mobile controls should only appear on mobile devices:</p>
+        <div id="controlsStatus"></div>
+    </div>
+    
+    <!-- Mobile Touch Controls -->
+    <div class="mobile-controls" id="mobileControls">
+        <div class="control-row">
+            <button class="touch-btn" id="rotateBtn">↻</button>
+            <button class="touch-btn" id="hardDropBtn">DROP</button>
+        </div>
+        <div class="control-row">
+            <button class="touch-btn" id="leftBtn">←</button>
+            <button class="touch-btn" id="downBtn">↓</button>
+            <button class="touch-btn" id="rightBtn">→</button>
+        </div>
+    </div>
+
+    <script>
+        // Simplified mobile detection function (same as in InputHandler.js)
+        function isMobileDevice() {
+            const userAgent = navigator.userAgent.toLowerCase();
+            const mobileKeywords = ['mobile', 'android', 'iphone', 'ipad', 'ipod', 'blackberry', 'windows phone'];
+            const isMobileUA = mobileKeywords.some(keyword => userAgent.includes(keyword));
+            
+            const isSmallScreen = window.innerWidth <= 768 || window.innerHeight <= 768;
+            const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+            
+            const isDesktop = userAgent.includes('windows') && !userAgent.includes('windows phone') ||
+                             userAgent.includes('macintosh') && !userAgent.includes('mobile') ||
+                             userAgent.includes('linux') && !userAgent.includes('android');
+            
+            return (isMobileUA || (hasTouch && isSmallScreen)) && !isDesktop;
+        }
+
+        // Test the detection
+        const isMobile = isMobileDevice();
+        
+        // Display device info
+        document.getElementById('deviceInfo').innerHTML = `
+            <p><strong>User Agent:</strong> ${navigator.userAgent}</p>
+            <p><strong>Screen Size:</strong> ${window.innerWidth} x ${window.innerHeight}</p>
+            <p><strong>Touch Support:</strong> ${'ontouchstart' in window || navigator.maxTouchPoints > 0}</p>
+            <p><strong>Max Touch Points:</strong> ${navigator.maxTouchPoints}</p>
+        `;
+        
+        // Display mobile status
+        const statusEl = document.getElementById('mobileStatus');
+        statusEl.textContent = `Mobile Device: ${isMobile ? 'YES' : 'NO'}`;
+        statusEl.className = `mobile-indicator ${isMobile ? 'mobile-true' : 'mobile-false'}`;
+        
+        // Show/hide controls based on detection
+        const mobileControls = document.getElementById('mobileControls');
+        const controlsStatus = document.getElementById('controlsStatus');
+        
+        if (isMobile) {
+            mobileControls.style.setProperty('display', 'block', 'important');
+            controlsStatus.innerHTML = '<p style="color: #00ff00;">✓ Mobile controls are VISIBLE (correct for mobile device)</p>';
+        } else {
+            mobileControls.style.setProperty('display', 'none', 'important');
+            controlsStatus.innerHTML = '<p style="color: #00ff00;">✓ Mobile controls are HIDDEN (correct for desktop device)</p>';
+        }
+        
+        // Add resize listener to update on orientation change
+        window.addEventListener('resize', () => {
+            location.reload(); // Simple way to retest on resize
+        });
+    </script>
+</body>
+</html>
